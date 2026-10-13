@@ -1,0 +1,441 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>วงผสมธาตุ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500&family=Sarabun:wght@400;500;600&display=swap">
+<style>
+/* Layout: concentric rings, base elements inside and mixes moving outward, with a control column beside the circle */
+:root {
+  --bg: #0b0a12;
+  --panel: #14121e;
+  --panel2: #1c1930;
+  --line: #2b2745;
+  --fg: #ece8f5;
+  --muted: #a29bb8;
+  --accent: #b79cff;
+  --accent-ink: #17102b;
+  --danger: #ff8277;
+  --q1: #8a4dff;
+  --q2: #3fb0d9;
+  --q3: #3fbf7a;
+  --q4: #e0554a;
+  --font-display: 'Mitr', 'Sarabun', system-ui, sans-serif;
+  --font-body: 'Sarabun', system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); }
+* { box-sizing: border-box; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; }
+header h1 { font: 500 clamp(26px, 5vw, 38px)/1.2 var(--font-display); margin: 0 0 4px; text-wrap: balance; letter-spacing: .01em; }
+header p { margin: 0; color: var(--muted); max-width: 60ch; }
+.main { display: block; margin-top: 8px; }
+@media (max-width: 880px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.stage { min-width: 0; }
+#circle { width: 100%; height: auto; display: block; max-width: 780px; margin: 0 auto; }
+.caption { text-align: center; color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+
+.side { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.sec { padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sec + .sec { border-top: 1px solid var(--line); }
+.sec h2 { font: 500 17px/1.3 var(--font-display); margin: 0; }
+.muted { color: var(--muted); }
+
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+input, select, button { font: inherit; }
+input[type=text], select {
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%;
+}
+input[type=color] { width: 100%; height: 40px; padding: 2px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; }
+.row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.row > * { flex: 1 1 120px; }
+.row > .plus { flex: 0 0 auto; padding-bottom: 8px; color: var(--muted); }
+.row > .btn { flex: 0 0 auto; }
+.btn {
+  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px;
+  padding: 9px 16px; font-weight: 600; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); font-weight: 500; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn:hover { filter: brightness(1.1); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.result { min-height: 44px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.msg { margin: 0; min-height: 1.4em; font-size: 14px; }
+.msg.err { color: var(--danger); }
+.msg.ok { color: var(--q3); }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 6px; white-space: nowrap; }
+.chip i { font-style: normal; }
+.eq { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 0 8px 6px 0; }
+
+.dhead { display: flex; gap: 12px; align-items: center; }
+.bigsym { width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--line); display: grid; place-items: center; font-size: 26px; background: var(--panel2); }
+.dname { font: 500 20px/1.2 var(--font-display); }
+.drow { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; }
+.drow .k { color: var(--muted); font-size: 13px; padding-top: 3px; }
+.dactions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tabs { display: flex; gap: 6px; }
+.tabs button { flex: 1; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 7px; cursor: pointer; }
+.tabs button[aria-selected=true] { background: var(--panel2); color: var(--fg); border-color: var(--accent); }
+form { display: flex; flex-direction: column; gap: 12px; }
+
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td { padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: middle; }
+tr:first-child td { border-top: 0; }
+td.x { text-align: right; width: 1%; }
+td.arrow { color: var(--muted); width: 1%; }
+.xbtn { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; }
+.xbtn:hover { color: var(--danger); }
+
+/* diagram */
+.edge { opacity: .55; stroke-linecap: round; transition: opacity .2s; }
+.edge.on { opacity: 1; }
+.edge.dim { opacity: .1; }
+.node { cursor: pointer; transition: opacity .2s; }
+.node .body { fill: var(--panel); stroke-width: 2.5; transition: stroke-width .15s; }
+.node:hover .body, .node:focus-visible .body { stroke-width: 4; }
+.node.sel .body { stroke-width: 4.5; fill: var(--panel2); }
+.node.dim { opacity: .3; }
+.node:focus { outline: none; }
+.node .lbl { fill: var(--fg); stroke: var(--bg); stroke-width: 5px; paint-order: stroke; stroke-linejoin: round; font: 500 20px var(--font-body); text-anchor: middle; }
+.node .sym { text-anchor: middle; dominant-baseline: central; font-size: 26px; }
+.node.pulse .body { animation: pulse 0.7s ease-out 2; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .node.pulse .body { animation: none; stroke-width: 6; } .edge, .node { transition: none; } }
+.hubtxt { fill: var(--muted); font: 500 16px var(--font-display); text-anchor: middle; }
+.detailbox { max-width: 780px; margin: 12px auto 0; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.detailbox .desc { margin: 12px 0 0; white-space: pre-wrap; }
+</style>
+
+<div class="wrap">
+  <header style="text-align:center"><h1>วงธาตุ</h1></header>
+  <div class="main">
+    <div class="stage">
+      <svg id="circle" role="group" aria-label="แผนภาพวงผสมธาตุ"></svg>
+      <div id="detail" class="detailbox" aria-live="polite" hidden></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  // ===== ใส่ค่าจาก Supabase (Project Settings > API) =====
+  var SUPABASE_URL = 'https://twwigqehpqjzrbunospa.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3d2lncWVocHFqenJidW5vc3BhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDUwNzMsImV4cCI6MjEwNzQ4MTA3M30.GulYtc9QuiB4vjBxm850B-z_645VFhPuRRT05qUltrc';
+  // =======================================================
+  var sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  var KEY = 'element-circle-v1';
+  var PALETTE = ['#c08a54', '#4da3ff', '#bfe3f0', '#ff6a3d', '#ffd84a', '#5ccf6e', '#b36cf0', '#ff7ab8', '#4de0c4', '#e8a33d'];
+  var DEFAULT = {
+    elements: [
+      { id: 'earth', name: 'ดิน', sym: '⛰️', color: '#c08a54' },
+      { id: 'fire', name: 'ไฟ', sym: '🔥', color: '#ff6a3d' },
+      { id: 'lightning', name: 'สายฟ้า', sym: '⚡', color: '#ffd84a' },
+      { id: 'wind', name: 'ลม', sym: '🌀', color: '#bfe3f0' },
+      { id: 'water', name: 'น้ำ', sym: '💧', color: '#4da3ff' },
+      { id: 'plant', name: 'พืช', sym: '🌿', color: '#5ccf6e' },
+      { id: 'stone', name: 'หิน', sym: '🪨', color: '#9b9aa6' },
+      { id: 'magma', name: 'แม็กม่า', sym: '🌋', color: '#ff4d2e' },
+      { id: 'iron', name: 'เหล็ก', sym: '⚙️', color: '#8fa3b8' },
+      { id: 'poison', name: 'พิษ', sym: '☠️', color: '#b36cf0' },
+      { id: 'acid', name: 'กรด', sym: '🧪', color: '#a6e22e' },
+      { id: 'ice', name: 'น้ำแข็ง', sym: '❄️', color: '#8ee8ff' }
+    ],
+    recipes: [
+      { a: 'earth', b: 'earth', out: 'stone' },
+      { a: 'stone', b: 'fire', out: 'magma' },
+      { a: 'stone', b: 'stone', out: 'iron' },
+      { a: 'plant', b: 'plant', out: 'poison' },
+      { a: 'poison', b: 'poison', out: 'acid' },
+      { a: 'wind', b: 'water', out: 'ice' }
+    ]
+  };
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.elements) && Array.isArray(s.recipes) && s.elements.length) {
+          var ids = {};
+          s.elements.forEach(function (e) { ids[e.id] = true; });
+          s.recipes = s.recipes.filter(function (r) { return ids[r.a] && ids[r.b] && ids[r.out]; });
+          return s;
+        }
+      }
+    } catch (e) {}
+    return clone(DEFAULT);
+  }
+  var prev = { e: {}, r: {} };
+  var queue = Promise.resolve();
+  function rkey(r) { return r.a + '|' + r.b + '|' + r.out; }
+  function setStat(t, bad) { var s = document.getElementById('dbstat'); if (s) { s.textContent = t; s.style.color = bad ? 'var(--danger)' : 'var(--muted)'; } }
+  function ok(res) { if (res && res.error) throw res.error; return res; }
+  function save() {
+    return; // read-only: never write
+    if (!sb) { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} return; }
+    setStat('กำลังบันทึก…');
+    queue = queue.then(push).catch(function (err) { setStat('บันทึกไม่สำเร็จ: ' + (err.message || err), true); });
+  }
+  async function push() {
+    var cur = { e: {}, r: {} };
+    state.elements.forEach(function (e) { cur.e[e.id] = 1; });
+    state.recipes.forEach(function (r) { cur.r[rkey(r)] = r; });
+    var delR = Object.keys(prev.r).filter(function (k) { return !cur.r[k]; });
+    for (var i = 0; i < delR.length; i++) { var d = prev.r[delR[i]]; ok(await sb.from('recipes').delete().match({ a: d.a, b: d.b, result: d.out })); }
+    var delE = Object.keys(prev.e).filter(function (k) { return !cur.e[k]; });
+    if (delE.length) ok(await sb.from('elements').delete().in('id', delE));
+    var insE = state.elements.filter(function (e) { return !prev.e[e.id]; }).map(function (e) { return { id: e.id, name: e.name, sym: e.sym, color: e.color }; });
+    if (insE.length) ok(await sb.from('elements').upsert(insE));
+    var insR = state.recipes.filter(function (r) { return !prev.r[rkey(r)]; }).map(function (r) { return { a: r.a, b: r.b, result: r.out }; });
+    if (insR.length) ok(await sb.from('recipes').upsert(insR));
+    prev = cur;
+    setStat('บันทึกลง Supabase แล้ว');
+  }
+  async function init() {
+    if (!sb) { setStat('ยังไม่ได้เชื่อม Supabase (ข้อมูลเก็บในเบราว์เซอร์นี้)'); return; }
+    setStat('กำลังโหลดจาก Supabase…');
+    try {
+      var e = ok(await sb.from('elements').select('*')), r = ok(await sb.from('recipes').select('*'));
+      if (e.data.length) {
+        state = {
+          elements: e.data.map(function (x) { return { id: x.id, name: x.name, sym: x.sym || Array.from(x.name)[0], color: x.color || '#999999', description: x.description || '' }; }),
+          recipes: r.data.map(function (x) { return { a: x.a, b: x.b, out: x.result }; })
+        };
+        state.elements.forEach(function (x) { prev.e[x.id] = 1; });
+        state.recipes.forEach(function (x) { prev.r[rkey(x)] = x; });
+        setStat('เชื่อม Supabase แล้ว');
+      } else {
+        state = clone(DEFAULT); save();
+      }
+    } catch (err) {
+      setStat('เชื่อม Supabase ไม่ได้: ' + (err.message || err), true);
+      sb = null;
+    }
+  }
+
+  var state = load();
+  var selected = null;
+  var confirmDel = false;
+  var confirmReset = false;
+
+  function byId(id) { return state.elements.find(function (e) { return e.id === id; }); }
+  function chip(id) { var e = byId(id); return e ? '<span class="chip"><i>' + esc(e.sym) + '</i>' + esc(e.name) + '</span>' : ''; }
+  function samePair(r, a, b) { return (r.a === a && r.b === b) || (r.a === b && r.b === a); }
+
+  function ancestors(id, seen) {
+    seen = seen || {};
+    state.recipes.forEach(function (r) {
+      if (r.out === id) [r.a, r.b].forEach(function (p) { if (!seen[p]) { seen[p] = true; ancestors(p, seen); } });
+    });
+    return seen;
+  }
+
+  function computeTiers() {
+    var tier = {};
+    var outs = {};
+    state.recipes.forEach(function (r) { outs[r.out] = true; });
+    state.elements.forEach(function (e) { if (!outs[e.id]) tier[e.id] = 0; });
+    var changed = true, guard = 0;
+    while (changed && guard++ < 60) {
+      changed = false;
+      state.elements.forEach(function (e) {
+        if (!outs[e.id]) return;
+        var best = null;
+        state.recipes.forEach(function (r) {
+          if (r.out !== e.id || tier[r.a] == null || tier[r.b] == null) return;
+          var t = Math.max(tier[r.a], tier[r.b]) + 1;
+          if (best === null || t < best) best = t;
+        });
+        if (best !== null && tier[e.id] !== best) { tier[e.id] = best; changed = true; }
+      });
+    }
+    state.elements.forEach(function (e) { if (tier[e.id] == null) tier[e.id] = 1; });
+    return tier;
+  }
+
+  var R0 = 125, STEP = 95, NODE_R = 30;
+  function ringR(t) { return R0 + t * STEP; }
+
+  function layout() {
+    var tier = computeTiers();
+    var maxT = 0;
+    state.elements.forEach(function (e) { maxT = Math.max(maxT, tier[e.id]); });
+    var size = 2 * (ringR(maxT) + 62);
+    var C = size / 2;
+    var ang = {};
+    var groups = [];
+    state.elements.forEach(function (e) { (groups[tier[e.id]] = groups[tier[e.id]] || []).push(e); });
+    groups.forEach(function (list, t) {
+      if (!list) return;
+      var r = ringR(t), n = list.length;
+      if (t === 0) {
+        list.forEach(function (e, i) { ang[e.id] = -Math.PI / 2 + i * 2 * Math.PI / n; });
+        return;
+      }
+      var arr = list.map(function (e) {
+        var sx = 0, sy = 0, cnt = 0;
+        state.recipes.forEach(function (rc) {
+          if (rc.out !== e.id) return;
+          [rc.a, rc.b].forEach(function (p) {
+            if (ang[p] != null) { sx += Math.cos(ang[p]); sy += Math.sin(ang[p]); cnt++; }
+          });
+        });
+        var d = cnt && (Math.abs(sx) + Math.abs(sy) > 1e-6) ? Math.atan2(sy, sx) : -Math.PI / 2;
+        return { e: e, a: d };
+      }).sort(function (x, y) { return x.a - y.a; });
+      var g = (2 * NODE_R + 14) / r;
+      if (n * g >= 2 * Math.PI) g = 2 * Math.PI / n;
+      if (n > 1) {
+        for (var it = 0; it < 300; it++) {
+          var moved = false;
+          for (var i = 0; i < n; i++) {
+            var j = (i + 1) % n;
+            var diff = arr[j].a - arr[i].a;
+            if (j === 0) diff += 2 * Math.PI;
+            if (diff < g - 1e-4) {
+              var push = (g - diff) / 2;
+              arr[i].a -= push; arr[j].a += push; moved = true;
+            }
+          }
+          if (!moved) break;
+        }
+      }
+      arr.forEach(function (o) { ang[o.e.id] = o.a; });
+    });
+    var pos = {};
+    state.elements.forEach(function (e) {
+      var r = ringR(tier[e.id]);
+      pos[e.id] = { x: C + r * Math.cos(ang[e.id]), y: C + r * Math.sin(ang[e.id]) };
+    });
+    return { tier: tier, maxT: maxT, size: size, C: C, pos: pos };
+  }
+
+  function arcPath(C, r, a0, a1) {
+    var x0 = C + r * Math.cos(a0), y0 = C + r * Math.sin(a0), x1 = C + r * Math.cos(a1), y1 = C + r * Math.sin(a1);
+    return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'A' + r + ' ' + r + ' 0 0 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1);
+  }
+
+  function related(id) {
+    var set = {};
+    if (!id) return set;
+    set[id] = true;
+    state.recipes.forEach(function (r) {
+      if (r.out === id || r.a === id || r.b === id) { set[r.a] = true; set[r.b] = true; set[r.out] = true; }
+    });
+    return set;
+  }
+
+  var svg = $('circle');
+  function renderDiagram() {
+    var L = layout(), C = L.C, pos = L.pos, g = 0.05, PI = Math.PI;
+    svg.setAttribute('viewBox', '0 0 ' + L.size + ' ' + L.size);
+    var rel = related(selected);
+    var h = '';
+    var outerR = ringR(L.maxT) + 44;
+    for (var k = 0; k < 8; k++) {
+      var a = k * PI / 4;
+      h += '<line x1="' + (C + 58 * Math.cos(a)).toFixed(1) + '" y1="' + (C + 58 * Math.sin(a)).toFixed(1) + '" x2="' + (C + outerR * Math.cos(a)).toFixed(1) + '" y2="' + (C + outerR * Math.sin(a)).toFixed(1) + '" stroke="#2b2745" stroke-width="1.5"/>';
+    }
+    var quads = [['#8a4dff', PI + g, 1.5 * PI - g], ['#3fb0d9', 1.5 * PI + g, 2 * PI - g], ['#3fbf7a', g, 0.5 * PI - g], ['#e0554a', 0.5 * PI + g, PI - g]];
+    for (var t = 0; t <= L.maxT; t++) {
+      quads.forEach(function (q) {
+        h += '<path d="' + arcPath(C, ringR(t), q[1], q[2]) + '" fill="none" stroke="' + q[0] + '" stroke-opacity=".75" stroke-width="2.5"/>';
+      });
+    }
+    h += '<circle cx="' + C + '" cy="' + C + '" r="48" fill="#14121e" stroke="#b79cff" stroke-opacity=".6" stroke-width="2"/>';
+    h += '<text class="hubtxt" x="' + C + '" y="' + (C + 6) + '">ธาตุ</text>';
+
+    state.recipes.forEach(function (r) {
+      var p = pos[r.out];
+      [r.a, r.b].forEach(function (src, idx) {
+        if (r.a === r.b && idx === 1) return;
+        var s = pos[src], el = byId(src);
+        var on = selected && (r.out === selected || r.a === selected || r.b === selected);
+        var cls = 'edge' + (on ? ' on' : (selected ? ' dim' : ''));
+        h += '<line class="' + cls + '" x1="' + s.x.toFixed(1) + '" y1="' + s.y.toFixed(1) + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) + '" stroke="' + esc(el.color) + '" stroke-width="' + (r.a === r.b ? 5 : 2.5) + '"/>';
+      });
+    });
+
+    state.elements.forEach(function (e) {
+      var p = pos[e.id];
+      var cls = 'node' + (selected === e.id ? ' sel' : '') + (selected && !rel[e.id] ? ' dim' : '');
+      h += '<g class="' + cls + '" data-id="' + esc(e.id) + '" tabindex="0" role="button" aria-label="' + esc(e.name) + '" transform="translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ')">' +
+        '<circle class="body" r="' + NODE_R + '" style="stroke:' + esc(e.color) + ';filter:drop-shadow(0 0 7px ' + esc(e.color) + '66)"/>' +
+        '<text class="sym" y="1">' + esc(e.sym) + '</text>' +
+        '<text class="lbl" y="' + (NODE_R + 20) + '">' + esc(e.name) + '</text></g>';
+    });
+    svg.innerHTML = h;
+  }
+
+  function renderDetail() {
+    var box = $('detail');
+    if (!box) return;
+    var e = selected && byId(selected);
+    if (!e) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<div class="dhead"><span class="bigsym" style="border-color:' + esc(e.color) + '">' + esc(e.sym) + '</span><div class="dname">' + esc(e.name) + '</div></div>' +
+      (e.description ? '<p class="desc">' + esc(e.description) + '</p>' : '<p class="desc muted">ยังไม่มีคำอธิบาย</p>');
+  }
+
+  function renderRecipes() {
+    if (!$('rcCount')) return;
+    $('rcCount').textContent = '(' + state.recipes.length + ')';
+    var t = $('rcTable');
+    if (!state.recipes.length) { t.innerHTML = '<tr><td class="muted">ยังไม่มีสูตร</td></tr>'; return; }
+    t.innerHTML = state.recipes.map(function (r, i) {
+      return '<tr><td>' + chip(r.a) + ' + ' + chip(r.b) + '</td><td class="arrow">→</td><td>' + chip(r.out) + '</td>' + '</tr>';
+    }).join('');
+  }
+
+  var selectIds = ['mixA', 'mixB'];
+  function refreshSelects() {
+    return;
+    var opts = state.elements.map(function (e) { return '<option value="' + esc(e.id) + '">' + esc(e.sym) + ' ' + esc(e.name) + '</option>'; }).join('');
+    selectIds.forEach(function (id) {
+      var s = $(id), v = s.value;
+      s.innerHTML = opts;
+      if (v && byId(v)) s.value = v;
+    });
+  }
+
+  function render() {
+    renderDiagram();
+    renderDetail();
+    renderRecipes();
+    refreshSelects();
+  }
+
+  function select(id) {
+    selected = selected === id ? null : id;
+    confirmDel = false;
+    renderDiagram();
+    renderDetail();
+  }
+
+  svg.addEventListener('click', function (ev) {
+    var n = ev.target.closest('.node');
+    if (n) select(n.getAttribute('data-id'));
+    else if (selected) { selected = null; confirmDel = false; renderDiagram(); renderDetail(); }
+  });
+  svg.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var n = ev.target.closest && ev.target.closest('.node');
+    if (n) { ev.preventDefault(); select(n.getAttribute('data-id')); }
+  });
+
+  init().then(function () {
+    selected = null;
+    render();
+  });
+})();
+</script>
+
+</body></html>
